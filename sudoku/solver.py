@@ -5,7 +5,7 @@ import numpy as np
 from sudoku.validators.array_validators import is_col, is_row, is_square
 from sudoku.validators.board_validators import is_valid_board_size
 from sudoku.validators.group_validators import is_valid_group_shape
-
+from numpy.typing import NDArray
 Board = np.ndarray | Sequence[np.ndarray | Sequence[int]]
 
 
@@ -41,7 +41,7 @@ def make_square(arr: np.array) -> np.array:
     return arr.reshape((row_len, row_len))
 
 
-def make_line(arr: np.array) -> np.array:
+def make_line(arr: NDArray[int]) -> NDArray[int]:
     return arr.reshape(arr.size)
 
 
@@ -50,6 +50,15 @@ class SudokuSolver:
     Sudoku puzzle solver
     """
     dtype: Type[np.number] = np.uint
+
+    class Row(np.ndarray):
+        pass
+
+    class Col(np.ndarray):
+        pass
+
+    class Square(np.ndarray):
+        pass
 
     def __init__(self, board: Board, *, size=None):
         """"""
@@ -77,18 +86,18 @@ class SudokuSolver:
         return len_side, len_side
 
     @property
-    def cols(self) -> list[np.ndarray]:
-        return list(rows_to_cols(self.board))
+    def cols(self) -> list[Col]:
+        return [c.view(self.Col) for c in rows_to_cols(self.board)]
 
     @property
-    def rows(self) -> list[np.ndarray]:
-        return list(self.board)
+    def rows(self) -> list[Row]:
+        return [r.view(self.Row) for r in rows_to_cols(self.board)]
 
     @property
     def squares(self) -> list[np.ndarray]:
-        return self._make_square_groups()
+        return [s.view(self.Square) for s in self._make_square_groups()]
 
-    def _make_square_groups(self):
+    def _make_square_groups(self) -> list[NDArray[int]]:
         groups = []
         for g_corner_row in range(0, self.size, self.square_group_side_len):
             for g_corner_col in range(0, self.size, self.square_group_side_len):
@@ -100,15 +109,15 @@ class SudokuSolver:
         return groups
 
     @classmethod
-    def from_cols(cls, cols: Board) -> 'SudokuSolver':
+    def from_cols(cls, cols: list[Col]) -> 'SudokuSolver':
         arr = np.array(cols, dtype=cls.dtype)
         arr = np.transpose(arr)
         cls(arr)
 
     @classmethod
-    def from_rows(cls, rows: Board) -> 'SudokuSolver':
+    def from_rows(cls, rows: list[Row]) -> 'SudokuSolver':
         return cls(rows)
 
     @classmethod
-    def from_squares(cls, squares: Board) -> 'SudokuSolver':
+    def from_squares(cls, squares: list[Square]) -> 'SudokuSolver':
         pass
