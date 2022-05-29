@@ -5,9 +5,9 @@ import numpy as np
 from sudoku.validators.array_validators import is_col, is_row, is_square
 from sudoku.validators.board_validators import is_valid_board_size
 from sudoku.validators.group_validators import is_valid_group_shape
-from .constants import DEFAULT_SUDOKU_SIZE
 
 Board = np.ndarray | Sequence[np.ndarray | Sequence[int]]
+
 
 def fill_group_simple_case(arr: np.ndarray) -> np.ndarray:
     """check if only 1 number is missing in the group. if it is fill it. """
@@ -17,23 +17,32 @@ def fill_group_simple_case(arr: np.ndarray) -> np.ndarray:
     zero_array = arr == 0
 
     if is_col(arr):
-        return fill_simple_case_col(arr)
+        return fill_simple_case(arr)
     elif is_row(arr):
-        return fill_simple_case_row(arr)
+        return fill_simple_case(arr)
     elif is_square(arr):
-        return fill_simple_case_square(arr)
+        return fill_simple_case(arr)
 
 
-def fill_simple_case_col(arr: np.ndarray) -> np.ndarray:
+def fill_simple_case(arr: np.ndarray) -> np.ndarray:
+    for i in range(1, arr.size + 1):
+        if i not in arr:
+            np.place(arr, arr == 0, i)
+            break
     return arr
 
 
-def fill_simple_case_row(arr: np.ndarray) -> np.ndarray:
-    return arr
+def rows_to_cols(rows: np.ndarray) -> np.ndarray:
+    return np.transpose(rows)
 
 
-def fill_simple_case_square(arr: np.ndarray) -> np.ndarray:
-    return arr
+def make_square(arr: np.array) -> np.array:
+    row_len = int(np.sqrt(arr.size))
+    return arr.reshape((row_len, row_len))
+
+
+def make_line(arr: np.array) -> np.array:
+    return arr.reshape(arr.size)
 
 
 class SudokuSolver:
@@ -69,7 +78,7 @@ class SudokuSolver:
 
     @property
     def cols(self) -> list[np.ndarray]:
-        return list(np.transpose(self.board))
+        return list(rows_to_cols(self.board))
 
     @property
     def rows(self) -> list[np.ndarray]:
