@@ -1,12 +1,25 @@
-from typing import Sequence, Type
+from copy import deepcopy
 
 import numpy as np
 
-from sudoku.validators.array_validators import is_col, is_row, is_square
-from sudoku.validators.board_validators import is_valid_board_size
-from sudoku.validators.group_validators import is_valid_group_shape
-from numpy.typing import NDArray
-Board = np.ndarray | Sequence[np.ndarray | Sequence[int]]
+from sudoku.puzzle import Board, SudokuPuzzle
+from sudoku.validators import is_square, is_valid_group_shape
+from sudoku.validators.array_validators import is_col, is_row
+
+import logging
+logging.basicConfig(level=logging.INFO)
+
+def solve_simple_board(board: SudokuPuzzle):
+    board = deepcopy(board)
+    rows = [check_and_fill_simple_case(row) for row in board.rows]
+    board = SudokuPuzzle.from_rows(rows)
+
+    cols = [check_and_fill_simple_case(col) for col in board.cols]
+    board = SudokuPuzzle.from_rows(cols)
+
+    squares = [check_and_fill_simple_case(square) for square in board.squares]
+    # board = SudokuPuzzle.from_rows(squares)
+    return board
 
 
 def fill_group_simple_case(arr: np.ndarray) -> np.ndarray:
@@ -17,107 +30,47 @@ def fill_group_simple_case(arr: np.ndarray) -> np.ndarray:
     zero_array = arr == 0
 
     if is_col(arr):
-        return fill_simple_case(arr)
+        return check_and_fill_simple_case(arr)
     elif is_row(arr):
-        return fill_simple_case(arr)
+        return check_and_fill_simple_case(arr)
     elif is_square(arr):
-        return fill_simple_case(arr)
+        return check_and_fill_simple_case(arr)
 
 
-def fill_simple_case(arr: np.ndarray) -> np.ndarray:
-    for i in range(1, arr.size + 1):
-        if i not in arr:
-            np.place(arr, arr == 0, i)
-            break
+def check_and_fill_simple_case(arr: np.ndarray) -> np.ndarray:
+    if len(arr[arr == 0]) == 1:
+        for i in range(1, arr.size + 1):
+            if i not in arr:
+                np.place(arr, arr == 0, i)
+                break
     return arr
 
 
-def rows_to_cols(rows: np.ndarray) -> np.ndarray:
-    return np.transpose(rows)
-
-
-def make_square(arr: np.array) -> np.array:
-    row_len = int(np.sqrt(arr.size))
-    return arr.reshape((row_len, row_len))
-
-
-def make_line(arr: NDArray[int]) -> NDArray[int]:
-    return arr.reshape(arr.size)
-
-
 class SudokuSolver:
-    """
-    Sudoku puzzle solver
-    """
-    dtype: Type[np.number] = np.uint
+    def __init__(self, puzzle: SudokuPuzzle | Board, *args, **kwargs):
+        if isinstance(puzzle, SudokuPuzzle):
+            self.puzzle = puzzle
+        else:
+            self.puzzle = SudokuPuzzle(puzzle, *args, **kwargs)
 
-    class Row(np.ndarray):
-        pass
-
-    class Col(np.ndarray):
-        pass
-
-    class Square(np.ndarray):
-        pass
-
-    def __init__(self, board: Board, *, size=None):
-        """"""
-        if size is None:
-            size = len(board[0])
-
-        if is_valid_board_size(size) is False:
-            raise ValueError(f'Invalid puzzle size: {size}')
-
-        self._size = size
-        self._square_group_side_len = int(np.sqrt(size))
-        self.board = np.array(board, dtype=self.dtype)
+    def __repr__(self):
+        return repr(self.puzzle.board)
 
     @property
-    def size(self):
-        return self._size
+    def is_solved(self):
+        return self.puzzle.is_solved
 
-    @property
-    def square_group_side_len(self):
-        return self._square_group_side_len
+    def solve_simple_cases(self):
+        original_puzzle = self.puzzle
+        potentially_solved_puzzle = solve_simple_board(original_puzzle)
+        logging.info(f'{original_puzzle=}')
+        logging.info(f'{potentially_solved_puzzle=}')
 
-    @property
-    def square_group_shape(self):
-        len_side = self.square_group_side_len
-        return len_side, len_side
+        while potentially_solved_puzzle.is_solved is False:
+            original_puzzle = potentially_solved_puzzle
+            potentially_solved_puzzle = solve_simple_board(original_puzzle)
+            logging.info(f'{original_puzzle=}')
+            logging.info(f'{potentially_solved_puzzle=}')
 
-    @property
-    def cols(self) -> list[Col]:
-        return [c.view(self.Col) for c in rows_to_cols(self.board)]
-
-    @property
-    def rows(self) -> list[Row]:
-        return [r.view(self.Row) for r in rows_to_cols(self.board)]
-
-    @property
-    def squares(self) -> list[np.ndarray]:
-        return [s.view(self.Square) for s in self._make_square_groups()]
-
-    def _make_square_groups(self) -> list[NDArray[int]]:
-        groups = []
-        for g_corner_row in range(0, self.size, self.square_group_side_len):
-            for g_corner_col in range(0, self.size, self.square_group_side_len):
-                group_arr = []
-                for row_num in range(g_corner_row, g_corner_row + self.square_group_side_len):
-                    group_row = self.board[row_num][g_corner_col: g_corner_col + self.square_group_side_len]
-                    group_arr.append(group_row)
-                groups.append(np.array(group_arr, dtype=self.dtype))
-        return groups
-
-    @classmethod
-    def from_cols(cls, cols: list[Col]) -> 'SudokuSolver':
-        arr = np.array(cols, dtype=cls.dtype)
-        arr = np.transpose(arr)
-        cls(arr)
-
-    @classmethod
-    def from_rows(cls, rows: list[Row]) -> 'SudokuSolver':
-        return cls(rows)
-
-    @classmethod
-    def from_squares(cls, squares: list[Square]) -> 'SudokuSolver':
-        pass
+        self.puzzle = potentially_solved_puzzle
+        logging.info(f'{self.puzzle=}')
