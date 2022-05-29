@@ -66,7 +66,7 @@ class SudokuSolver:
         logging.info(f'{original_puzzle=}')
         logging.info(f'{potentially_solved_puzzle=}')
 
-        while potentially_solved_puzzle.is_solved is False:
+        while not np.array_equal(original_puzzle.board, potentially_solved_puzzle.board):
             original_puzzle = potentially_solved_puzzle
             potentially_solved_puzzle = solve_simple_board(original_puzzle)
             logging.info(f'{original_puzzle=}')
