@@ -103,7 +103,7 @@ class SudokuPuzzle:
         coords_square = make_squares(self.coord_array, self.size, self.square_group_side_len)
         coord = np.array((cell.row, cell.col))
         for i, coords in enumerate(coords_square):
-            if coord in coords:
+            if (coords.reshape(self.size, 2) == coord).any(0).all():
                 return self.squares[i]
 
     def get_missing_values_of_group(self, group: Group | NDArray):
@@ -113,17 +113,22 @@ class SudokuPuzzle:
             arr = group
         return np.setdiff1d(self.value_range, arr)
 
-    def get_possible_cell_values(self, cell: Cell) -> NDArray:
+    def _get_possible_cell_values_from_group_intersection(self, cell: Cell) -> NDArray:
         if cell.value != 0:
             return np.array([cell.value])
 
         row = self.get_row_from_cell(cell)
         col = self.get_col_from_cell(cell)
+        square = self.get_square_from_cell(cell)
         row_col = np.union1d(row.array, col.array)
+        row_col_square = np.union1d(row_col, square.array)
+        missing_values = self.get_missing_values_of_group(row_col_square)
+        return missing_values
 
-        row_col_values = self.get_missing_values_of_group(row_col)
+    def get_possible_cell_values(self, cell: Cell) -> NDArray:
+        possible_cell_values = self._get_possible_cell_values_from_group_intersection(cell)
 
-        return row_col_values
+        return possible_cell_values
 
     def get_empty_cell_coords(self) -> NDArray[NDArray[int]]:
         return self.coord_array[self.board == 0]
