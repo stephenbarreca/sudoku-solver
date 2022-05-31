@@ -136,7 +136,7 @@ class SudokuPuzzle:
             arr = group
         return np.setdiff1d(self.value_range, arr)
 
-    def get_hidden_values_of_group(self, group: Group) -> list[Cell]:
+    def get_single_hidden_values_of_group(self, group: Group) -> list[Cell]:
         if isinstance(group, Row):
             coords = self.coord_array[group.index].reshape(self.size)
         elif isinstance(group, Col):

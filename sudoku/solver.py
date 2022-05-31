@@ -72,17 +72,17 @@ class SudokuSolver:
 
     def solve_hidden_values_single(self):
         for row in self.puzzle.rows:
-            cells_with_hidden_values = self.puzzle.get_hidden_values_of_group(row)
+            cells_with_hidden_values = self.puzzle.get_single_hidden_values_of_group(row)
             for cell in cells_with_hidden_values:
                 self.puzzle.put_cell(cell)
 
         for col in self.puzzle.cols:
-            cells_with_hidden_values = self.puzzle.get_hidden_values_of_group(col)
+            cells_with_hidden_values = self.puzzle.get_single_hidden_values_of_group(col)
             for cell in cells_with_hidden_values:
                 self.puzzle.put_cell(cell)
 
         for sq in self.puzzle.squares:
-            cells_with_hidden_values = self.puzzle.get_hidden_values_of_group(sq)
+            cells_with_hidden_values = self.puzzle.get_single_hidden_values_of_group(sq)
             for cell in cells_with_hidden_values:
                 self.puzzle.put_cell(cell)
 
