@@ -75,7 +75,7 @@ class SudokuPuzzle:
 
     @property
     def rows(self) -> list[Row]:
-        return [r.view(Row) for r in rows_to_cols(self.board)]
+        return [r.view(Row) for r in self.board]
 
     @property
     def squares(self) -> list[np.ndarray]:

@@ -92,3 +92,4 @@ class SudokuSolver:
         while (self.is_solved is False) and (time() - start <= self.timeout):
             self.solve_groups_with_one_missing()
             self.solve_cells_with_one_possibility()
+        return self
