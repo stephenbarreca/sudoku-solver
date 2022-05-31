@@ -1,6 +1,7 @@
 import pytest
 import numpy as np
 import sudoku.validators.array_validators as validators
+import sudoku.validators.group_validators
 
 arrays = [
     (1,),
@@ -30,12 +31,12 @@ arg_arr = ('arr', arrays)
 class TestFunc_is_n_dimensional:
     def test_is_n_dimensional_true(self, arr):
         n = len(arr.shape)
-        assert validators.is_n_dimensional(arr, n) is True
+        assert validators.is_nd_array(arr, n) is True
 
     def test_is_n_dimensional_false(self, arr):
         n = len(arr.shape)
-        assert validators.is_n_dimensional(arr, n + 1) is False
-        assert validators.is_n_dimensional(arr, n - 1) is False
+        assert validators.is_nd_array(arr, n + 1) is False
+        assert validators.is_nd_array(arr, n - 1) is False
 
 
 @pytest.mark.parametrize('arr,result', zip(arrays, [
@@ -48,13 +49,13 @@ class TestFunc_is_n_dimensional:
     False
 ]))
 def test_is_square(arr, result):
-    assert validators.is_square(arr) is result
+    assert validators.is_square_array(arr) is result
 
 
 @pytest.mark.parametrize(*arg_arr)
 def test_is_row(arr):
-    result = validators.is_n_dimensional(arr, 1)
-    assert validators.is_row(arr) is result
+    result = validators.is_nd_array(arr, 1)
+    assert sudoku.validators.group_validators.is_row(arr) is result
 
 
 @pytest.mark.parametrize('arr,result', zip(arrays, [
@@ -67,4 +68,4 @@ def test_is_row(arr):
     True
 ]))
 def test_is_col(arr, result):
-    assert validators.is_col(arr) is result
+    assert sudoku.validators.group_validators.is_col(arr) is result

@@ -1,6 +1,6 @@
 import numpy as np
 
-from .array_validators import is_square
+from .array_validators import is_square_array
 
 
 def is_valid_board_size(size: int):
@@ -23,4 +23,4 @@ def is_valid_board_shape(board: np.ndarray):
     Returns:
 
     """
-    return is_square(board)
+    return is_square_array(board)

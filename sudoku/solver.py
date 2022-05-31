@@ -1,13 +1,15 @@
 import logging
 from copy import deepcopy
-from attrs import define, field
+from time import time
 
 import numpy as np
+from attrs import define, field
 from numpy.typing import NDArray
-from sudoku.puzzle import Board, SudokuPuzzle, Cell
-from sudoku.validators import is_square, is_valid_group_shape
-from sudoku.validators.array_validators import is_col, is_row
-from time import time
+
+from sudoku.puzzle import Board, Cell, SudokuPuzzle
+from sudoku.groups import Group
+from sudoku.validators import is_square_array, is_valid_group_shape
+from sudoku.validators.group_validators import is_col, is_row
 
 logging.basicConfig(level=logging.INFO)
 
@@ -26,26 +28,24 @@ def solve_simple_board(board: SudokuPuzzle):
     return board
 
 
-def fill_groups_with_one_missing(arr: np.ndarray) -> np.ndarray:
+def fill_groups_with_one_missing(group: Group) -> Group:
     """check if only 1 number is missing in the group. if it is fill it. """
-    if not is_valid_group_shape(arr):
+    if not is_valid_group_shape(group.array):
         raise ValueError('group is invalid shape')
 
-    zero_array = arr == 0
-
-    if is_col(arr):
-        return check_and_fill_group_with_one_missing(arr)
-    elif is_row(arr):
-        return check_and_fill_group_with_one_missing(arr)
-    elif is_square(arr):
-        return check_and_fill_group_with_one_missing(arr)
+    if is_col(group.array):
+        return check_and_fill_group_with_one_missing(group)
+    elif is_row(group.array):
+        return check_and_fill_group_with_one_missing(group)
+    elif is_square_array(group.array):
+        return check_and_fill_group_with_one_missing(group)
 
 
-def check_and_fill_group_with_one_missing(group: NDArray) -> np.ndarray:
-    if len(group[group == 0]) == 1:
-        for i in range(1, group.size + 1):
+def check_and_fill_group_with_one_missing(group: Group) -> Group:
+    if len(group.array[group.array == 0]) == 1:
+        for i in range(1, group.array.size + 1):
             if i not in group:
-                np.place(group, group == 0, i)
+                np.place(group.array, group.array == 0, i)
                 break
     return group
 
@@ -66,13 +66,17 @@ class SudokuSolver:
     def is_solved(self):
         return self.puzzle.is_solved
 
+    @property
+    def num_empty_cells(self):
+        return self.puzzle.num_empty_cells
+
     def solve_groups_with_one_missing(self):
         original_puzzle = self.puzzle
         potentially_solved_puzzle = solve_simple_board(original_puzzle)
         logging.info(f'{original_puzzle=}')
         logging.info(f'{potentially_solved_puzzle=}')
 
-        while not np.array_equal(original_puzzle.board, potentially_solved_puzzle.board):
+        while original_puzzle != potentially_solved_puzzle:
             original_puzzle = potentially_solved_puzzle
             potentially_solved_puzzle = solve_simple_board(original_puzzle)
             logging.info(f'{original_puzzle=}')
@@ -89,8 +93,17 @@ class SudokuSolver:
                 self.puzzle.put_cell(cell, possible_cell_values[0])
 
     def solve(self):
-        start = time()
-        while (self.is_solved is False) and (time() - start <= self.timeout):
+        timer = time()
+        num_empty_cells_prev = 0
+        num_empty_cells_current = self.num_empty_cells
+
+        while ((num_empty_cells_prev != num_empty_cells_current)
+               and (time() - timer < self.timeout)
+               and (self.is_solved is False)):
+            num_empty_cells_prev = num_empty_cells_current
+
             self.solve_groups_with_one_missing()
             self.solve_cells_with_one_possibility()
+
+            num_empty_cells_current = self.num_empty_cells
         return self

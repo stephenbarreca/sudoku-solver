@@ -1,29 +1,23 @@
 import numpy as np
+from numpy.typing import NDArray
 
 
-def is_square(arr: np.ndarray):
-    shape = arr.shape
-    if len(shape) == 2 and shape[0] == shape[1]:
-        return True
-    return False
-
-
-def is_n_dimensional(arr: np.ndarray, n: int):
+def is_nd_array(arr: NDArray, n: int) -> bool:
     if len(arr.shape) != n:
         return False
     return True
 
 
-def is_row(arr: np.ndarray):
-    return is_n_dimensional(arr, 1)
+def is_1d_array(arr: np.ndarray) -> bool:
+    return is_nd_array(arr, 1)
 
 
-def is_col(arr: np.ndarray):
-    if not is_n_dimensional(arr, 2):
-        return False
+def is_2d_array(arr: np.ndarray) -> bool:
+    return is_nd_array(arr, 2)
 
-    rows, cols = arr.shape
-    if cols != 1:
-        return False
 
-    return True
+def is_square_array(arr: np.ndarray) -> bool:
+    shape = arr.shape
+    if is_2d_array(arr) and shape[0] == shape[1]:
+        return True
+    return False

@@ -6,8 +6,9 @@ import pytest
 
 from sudoku.puzzle import make_line, make_square, SudokuPuzzle
 from sudoku.solver import check_and_fill_group_with_one_missing, SudokuSolver
-from sudoku.validators import is_square
+from sudoku.validators import is_square_array
 from tests.conftest import solution_2x2_a, solution_3x3_a
+from sudoku.groups import Group
 
 
 def create_groups_with_one_empty_cell(group: np.ndarray) -> list[np.ndarray]:
@@ -35,14 +36,23 @@ input_group_output_combos = make_input_group_output_combos(2)
 @pytest.mark.parametrize('input_group, output', input_group_output_combos)
 class TestFunc_check_and_fill_simple_case:
     def test_line_group_with_one_missing_gets_filled(self, input_group, output):
+        input_group = Group(0, input_group)
+        output_group = Group(0, output)
         solved_group = check_and_fill_group_with_one_missing(input_group)
-        assert np.array_equal(solved_group, output)
+
+        assert np.array_equal(solved_group.array, output_group.array)
+        assert solved_group == output_group
+        assert input_group is solved_group
 
     def test_square_group_with_one_missing_gets_filled(self, input_group, output):
         square_group = make_square(input_group)
+        square_group = Group(0, square_group)
+        output_group = Group(0, output)
+
         solved_group = check_and_fill_group_with_one_missing(square_group)
-        assert is_square(solved_group)
-        assert np.array_equal(make_line(solved_group), output)
+        assert is_square_array(solved_group.array)
+        assert np.array_equal(solved_group.array.ravel(), output)
+        assert square_group is solved_group
 
 
 simplest_boards_puzzle_solution = (

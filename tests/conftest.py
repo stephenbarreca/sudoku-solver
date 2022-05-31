@@ -1,3 +1,7 @@
+import pytest
+import numpy as np
+
+
 solution_2x2_a = (
     [1, 2, 3, 4],
     [3, 4, 1, 2],
@@ -15,3 +19,8 @@ solution_3x3_a = (
     [6, 7, 8, 9, 1, 2, 3, 4, 5],
     [9, 1, 2, 3, 4, 5, 6, 7, 8],
 )
+
+
+@pytest.fixture()
+def group_array_9x1():
+    return np.array(range(1, 10))
