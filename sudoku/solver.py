@@ -83,7 +83,6 @@ class SudokuSolver:
             logging.info(f'{potentially_solved_puzzle=}')
 
         self.puzzle = potentially_solved_puzzle
-        logging.info(f'{self.puzzle=}')
 
     def solve_cells_with_one_possibility(self):
         for coord in self.puzzle.get_empty_cell_coords():

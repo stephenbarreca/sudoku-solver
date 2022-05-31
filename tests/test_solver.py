@@ -7,7 +7,7 @@ import pytest
 from sudoku.puzzle import make_line, make_square, SudokuPuzzle
 from sudoku.solver import check_and_fill_group_with_one_missing, SudokuSolver
 from sudoku.validators import is_square_array
-from tests.conftest import solution_2x2_a, solution_3x3_a
+from tests.conftest import solution_2x2_a, solution_3x3_a, solution_3x3_b, puzzle_3x3_b_1
 from sudoku.groups import Group
 
 
@@ -123,3 +123,16 @@ def test_solve_cells_with_one_possibility(output, puzzle):
 
     assert solver.is_solved is True
     assert solver.puzzle == output
+
+
+@pytest.mark.parametrize('puzzle, solution', [
+    (puzzle_3x3_b_1, solution_3x3_b)
+])
+def test_solve(puzzle, solution):
+    solver = SudokuSolver(puzzle)
+    solution = SudokuPuzzle(solution)
+
+    solver.solve()
+
+    assert solver.is_solved
+    assert np.array_equal(solver.puzzle.board, solution.board)
