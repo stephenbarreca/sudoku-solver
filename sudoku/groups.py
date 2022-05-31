@@ -68,11 +68,14 @@ def convert_group_array(arr: NDArray | list):
 
 @define(slots=False)
 class Group:
-    id: int
+    index: int
     array: NDArray[int] = field(eq=cmp_using(eq=np.array_equal), converter=convert_group_array)
 
     def __contains__(self, item):
         return item in self.array
+
+    def __array__(self):
+        return self.array
 
     def get_cells(self):
         pass

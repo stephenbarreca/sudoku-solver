@@ -70,17 +70,33 @@ class SudokuSolver:
     def num_empty_cells(self):
         return self.puzzle.num_empty_cells
 
+    def solve_hidden_values_single(self):
+        for row in self.puzzle.rows:
+            cells_with_hidden_values = self.puzzle.get_hidden_values_of_group(row)
+            for cell in cells_with_hidden_values:
+                self.puzzle.put_cell(cell)
+
+        for col in self.puzzle.cols:
+            cells_with_hidden_values = self.puzzle.get_hidden_values_of_group(col)
+            for cell in cells_with_hidden_values:
+                self.puzzle.put_cell(cell)
+
+        for sq in self.puzzle.squares:
+            cells_with_hidden_values = self.puzzle.get_hidden_values_of_group(sq)
+            for cell in cells_with_hidden_values:
+                self.puzzle.put_cell(cell)
+
     def solve_groups_with_one_missing(self):
         original_puzzle = self.puzzle
         potentially_solved_puzzle = solve_simple_board(original_puzzle)
-        logging.info(f'{original_puzzle=}')
-        logging.info(f'{potentially_solved_puzzle=}')
+        logging.debug(f'{original_puzzle=}')
+        logging.debug(f'{potentially_solved_puzzle=}')
 
         while original_puzzle != potentially_solved_puzzle:
             original_puzzle = potentially_solved_puzzle
             potentially_solved_puzzle = solve_simple_board(original_puzzle)
-            logging.info(f'{original_puzzle=}')
-            logging.info(f'{potentially_solved_puzzle=}')
+            logging.debug(f'{original_puzzle=}')
+            logging.debug(f'{potentially_solved_puzzle=}')
 
         self.puzzle = potentially_solved_puzzle
 
@@ -102,7 +118,10 @@ class SudokuSolver:
             num_empty_cells_prev = num_empty_cells_current
 
             self.solve_groups_with_one_missing()
+            self.solve_hidden_values_single()
             self.solve_cells_with_one_possibility()
 
             num_empty_cells_current = self.num_empty_cells
+            logging.info(f'board: {self.puzzle.board}')
+            logging.info(f'empty cells: {self.num_empty_cells}')
         return self
