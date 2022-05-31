@@ -7,7 +7,7 @@ import pytest
 from sudoku.puzzle import make_line, make_square, SudokuPuzzle
 from sudoku.solver import check_and_fill_group_with_one_missing, SudokuSolver
 from sudoku.validators import is_square
-
+from tests.conftest import solution_2x2_a, solution_3x3_b
 
 def create_groups_with_one_empty_cell(group: np.ndarray) -> list[np.ndarray]:
     ret = [copy(group) for i in range(len(group))]
@@ -44,23 +44,7 @@ class TestFunc_check_and_fill_simple_case:
         assert np.array_equal(make_line(solved_group), output)
 
 
-solution_2x2_a = (
-    [1, 2, 3, 4],
-    [2, 3, 4, 1],
-    [3, 4, 1, 2],
-    [4, 1, 2, 3]
-)
-solution_3x3_b = (
-    [1, 2, 3, 4, 5, 6, 7, 8, 9],
-    [2, 3, 4, 5, 6, 7, 8, 9, 1],
-    [3, 4, 5, 6, 7, 8, 9, 1, 2],
-    [4, 5, 6, 7, 8, 9, 1, 2, 3],
-    [5, 6, 7, 8, 9, 1, 2, 3, 4],
-    [6, 7, 8, 9, 1, 2, 3, 4, 5],
-    [7, 8, 9, 1, 2, 3, 4, 5, 6],
-    [8, 9, 1, 2, 3, 4, 5, 6, 7],
-    [9, 1, 2, 3, 4, 5, 6, 7, 8],
-)
+
 
 simplest_boards_puzzle_solution = (
     (  # test basic row fill solution

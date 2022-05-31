@@ -1,5 +1,5 @@
 from typing import Sequence
-
+from math import isqrt
 import numpy as np
 import attrs
 from attrs import define, field, cmp_using
@@ -55,7 +55,6 @@ class SudokuPuzzle:
     square_group_shape: tuple[int, int] = field(init=False, eq=False, repr=False)
     coord_array: NDArray[NDArray[NDArray[int]]] = field(init=False, eq=False, repr=False)
     value_range: NDArray[int] = field(init=False, eq=False, repr=False)
-
 
     def __attrs_post_init__(self):
         self.size = len(self.board[0])
@@ -143,7 +142,14 @@ class SudokuPuzzle:
 
     @classmethod
     def from_squares(cls, squares: list[NDArray[int]]) -> 'SudokuPuzzle':
-        pass
+        groups_per_row = isqrt(len(squares))
+        square_rows = []
+        for i in range(0, len(squares), groups_per_row):
+            square_row = np.hstack(squares[i: i+groups_per_row])
+            square_rows.append(square_row)
+
+        board = np.vstack(square_rows)
+        return cls(board)
 
     @property
     def is_solved(self):

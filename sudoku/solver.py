@@ -3,10 +3,11 @@ from copy import deepcopy
 from attrs import define, field
 
 import numpy as np
-
+from numpy.typing import NDArray
 from sudoku.puzzle import Board, SudokuPuzzle, Cell
 from sudoku.validators import is_square, is_valid_group_shape
 from sudoku.validators.array_validators import is_col, is_row
+from time import time
 
 logging.basicConfig(level=logging.INFO)
 
@@ -17,10 +18,11 @@ def solve_simple_board(board: SudokuPuzzle):
     board = SudokuPuzzle.from_rows(rows)
 
     cols = [check_and_fill_group_with_one_missing(col) for col in board.cols]
-    board = SudokuPuzzle.from_rows(cols)
+    board = SudokuPuzzle.from_cols(cols)
 
     squares = [check_and_fill_group_with_one_missing(square) for square in board.squares]
-    # board = SudokuPuzzle.from_rows(squares)
+    board = SudokuPuzzle.from_squares(squares)
+
     return board
 
 
@@ -39,7 +41,7 @@ def fill_groups_with_one_missing(arr: np.ndarray) -> np.ndarray:
         return check_and_fill_group_with_one_missing(arr)
 
 
-def check_and_fill_group_with_one_missing(group: np.ndarray) -> np.ndarray:
+def check_and_fill_group_with_one_missing(group: NDArray) -> np.ndarray:
     if len(group[group == 0]) == 1:
         for i in range(1, group.size + 1):
             if i not in group:
@@ -57,6 +59,7 @@ def convert_to_puzzle(puzzle: SudokuPuzzle | Board) -> SudokuPuzzle:
 @define
 class SudokuSolver:
     puzzle: SudokuPuzzle = field(converter=SudokuPuzzle, repr=lambda p: f'\n{repr(p.board)}\nsolved={p.is_solved}')
+    timeout: int = field(default=10, eq=False, repr=False)
 
     @property
     def is_solved(self):
@@ -85,4 +88,7 @@ class SudokuSolver:
                 self.puzzle.put_cell(cell, possible_cell_values[0])
 
     def solve(self):
-        self.solve_groups_with_one_missing()
+        start = time()
+        while (self.is_solved is False) and (time() - start <= self.timeout):
+            self.solve_groups_with_one_missing()
+            self.solve_cells_with_one_possibility()
