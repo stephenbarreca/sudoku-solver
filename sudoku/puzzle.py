@@ -1,6 +1,8 @@
-from typing import Sequence, Type
+from typing import Sequence
 
 import numpy as np
+import attrs
+from attrs import define, field, cmp_using
 from numpy.typing import NDArray
 
 from sudoku.validators import is_valid_board_size
@@ -21,60 +23,67 @@ def make_line(arr: NDArray[int]) -> NDArray[int]:
     return arr.reshape(arr.size)
 
 
+class Row(np.ndarray):
+    pass
+
+
+class Col(np.ndarray):
+    pass
+
+
+class Square(np.ndarray):
+    pass
+
+
+@define(frozen=True)
+class Cell:
+    row: int = field(eq=False)
+    col: int = field(eq=False)
+    value: int = field(eq=True)
+
+
+@define(slots=False)
 class SudokuPuzzle:
     """
     Sudoku puzzle solver
     """
-    dtype: Type[np.number] = np.uint
+    # dtype: Type[np.number] = np.uint
+    board: NDArray[int] = field(eq=cmp_using(eq=np.array_equal), converter=np.array)
 
-    class Row(np.ndarray):
-        pass
+    size: int = field(init=False, eq=False, repr=False)
+    square_group_side_len: int = field(init=False, eq=False, repr=False)
+    square_group_shape: tuple[int, int] = field(init=False, eq=False, repr=False)
+    coord_array: NDArray[NDArray[NDArray[int]]] = field(init=False, eq=False, repr=False)
+    value_range: NDArray[int] = field(init=False, eq=False, repr=False)
 
-    class Col(np.ndarray):
-        pass
 
-    class Square(np.ndarray):
-        pass
+    def __attrs_post_init__(self):
+        self.size = len(self.board[0])
+        self.validate_board_size()
 
-    def __init__(self, board: Board, *, size=None):
-        """"""
-        if size is None:
-            size = len(board[0])
+        self.square_group_side_len = int(np.sqrt(self.size))
+        self.square_group_shape = (self.square_group_side_len, self.square_group_side_len)
+        self.coord_array = self._make_coord_array()
+        self.value_range = np.array(range(1, self.size+1))
 
-        if is_valid_board_size(size) is False:
-            raise ValueError(f'Invalid puzzle size: {size}')
-
-        self._size = size
-        self._square_group_side_len = int(np.sqrt(size))
-        self.board = np.array(board, dtype=self.dtype)
-
-    def __repr__(self):
-        return repr(self.board)
-
-    @property
-    def size(self):
-        return self._size
-
-    @property
-    def square_group_side_len(self):
-        return self._square_group_side_len
-
-    @property
-    def square_group_shape(self):
-        len_side = self.square_group_side_len
-        return len_side, len_side
+    def validate_board_size(self):
+        if is_valid_board_size(self.size) is False:
+            raise ValueError(f'Invalid puzzle size: {self.size}')
 
     @property
     def cols(self) -> list[Col]:
-        return [c.view(self.Col) for c in rows_to_cols(self.board)]
+        return [c.view(Col) for c in rows_to_cols(self.board)]
 
     @property
     def rows(self) -> list[Row]:
-        return [r.view(self.Row) for r in rows_to_cols(self.board)]
+        return [r.view(Row) for r in rows_to_cols(self.board)]
 
     @property
     def squares(self) -> list[np.ndarray]:
-        return [s.view(self.Square) for s in self._make_square_groups()]
+        return [s.view(Square) for s in self._make_square_groups()]
+
+    def _make_coord_array(self) -> NDArray[NDArray[NDArray]]:
+        return np.array([[(i, j) for j, col in enumerate(row)] for i, row in enumerate(self.board)])
 
     def _make_square_groups(self) -> list[NDArray[int]]:
         groups = []
@@ -84,14 +93,49 @@ class SudokuPuzzle:
                 for row_num in range(g_corner_row, g_corner_row + self.square_group_side_len):
                     group_row = self.board[row_num][g_corner_col: g_corner_col + self.square_group_side_len]
                     group_arr.append(group_row)
-                groups.append(np.array(group_arr, dtype=self.dtype))
+                groups.append(np.array(group_arr))
         return groups
+
+    def get_cell(self, row: int, col: int) -> Cell:
+        return Cell(row, col, self.board[row][col])
+
+    def put_cell(self, cell, value: int = None):
+        if value is None:
+            value = cell.value
+        self.board[cell.row][cell.col] = value
+
+    def get_row_from_cell(self, cell: Cell) -> NDArray:
+        return self.board[cell.row]
+
+    def get_col_from_cell(self, cell: Cell) -> NDArray:
+        return self.cols[cell.col]
+
+    def get_cell_square(self, cell: Cell) -> NDArray:
+        pass
+
+    def get_missing_values_of_group(self, group: NDArray):
+        return np.setdiff1d(self.value_range, group)
+
+    def get_possible_cell_values(self, cell: Cell) -> NDArray:
+        if cell.value != 0:
+            return np.array([cell.value])
+
+        row = self.get_row_from_cell(cell)
+        col = self.get_col_from_cell(cell)
+        row_col = np.union1d(row, col)
+
+        row_col_values = self.get_missing_values_of_group(row_col)
+
+        return row_col_values
+
+    def get_empty_cell_coords(self) -> NDArray[NDArray[int]]:
+        return self.coord_array[self.board == 0]
 
     @classmethod
     def from_cols(cls, cols: list[NDArray[int]]) -> 'SudokuPuzzle':
-        arr = np.array(cols, dtype=cls.dtype)
+        arr = np.array(cols)
         arr = np.transpose(arr)
-        cls(arr)
+        return cls(arr)
 
     @classmethod
     def from_rows(cls, rows: list[NDArray[int]]) -> 'SudokuPuzzle':

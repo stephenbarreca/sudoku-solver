@@ -5,7 +5,7 @@ import numpy as np
 import pytest
 
 from sudoku.puzzle import make_line, make_square, SudokuPuzzle
-from sudoku.solver import check_and_fill_simple_case, SudokuSolver
+from sudoku.solver import check_and_fill_group_with_one_missing, SudokuSolver
 from sudoku.validators import is_square
 
 
@@ -34,12 +34,12 @@ input_group_output_combos = make_input_group_output_combos(2)
 @pytest.mark.parametrize('input_group, output', input_group_output_combos)
 class TestFunc_check_and_fill_simple_case:
     def test_line_group_with_one_missing_gets_filled(self, input_group, output):
-        solved_group = check_and_fill_simple_case(input_group)
+        solved_group = check_and_fill_group_with_one_missing(input_group)
         assert np.array_equal(solved_group, output)
 
     def test_square_group_with_one_missing_gets_filled(self, input_group, output):
         square_group = make_square(input_group)
-        solved_group = check_and_fill_simple_case(square_group)
+        solved_group = check_and_fill_group_with_one_missing(square_group)
         assert is_square(solved_group)
         assert np.array_equal(make_line(solved_group), output)
 
@@ -61,6 +61,7 @@ solution_3x3_b = (
     [8, 9, 1, 2, 3, 4, 5, 6, 7],
     [9, 1, 2, 3, 4, 5, 6, 7, 8],
 )
+
 simplest_boards_puzzle_solution = (
     (  # test basic row fill solution
         solution_2x2_a,
@@ -98,9 +99,34 @@ simplest_boards_puzzle_solution = (
 
 
 @pytest.mark.parametrize('solution, puzzle', simplest_boards_puzzle_solution)
-def test_solve_simplest_boards(puzzle, solution):
-    puzzle = SudokuPuzzle(puzzle)
+def solve_groups_with_one_missing(puzzle, solution):
     solution = SudokuPuzzle(solution)
     solver = SudokuSolver(puzzle)
-    solver.solve_simple_cases()
-    assert np.array_equal(solver.puzzle.board, solution.board)
+    assert solver.is_solved is False
+
+    solver.solve_groups_with_one_missing()
+
+    assert solver.is_solved is True
+    assert solver.puzzle.board == solution.board
+
+
+@pytest.mark.parametrize('output, puzzle', [
+    (
+            solution_2x2_a,
+            (
+                    [1, 0, 0, 4],
+                    [2, 3, 4, 1],
+                    [3, 0, 1, 2],
+                    [4, 1, 2, 3]
+            )
+    ),
+])
+def test_solve_cells_with_one_possibility(output, puzzle):
+    output = SudokuPuzzle(output)
+    solver = SudokuSolver(puzzle)
+    assert solver.is_solved is False
+
+    solver.solve_cells_with_one_possibility()
+
+    assert solver.is_solved is True
+    assert solver.puzzle == output
