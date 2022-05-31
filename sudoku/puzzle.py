@@ -156,4 +156,13 @@ class SudokuPuzzle:
         board = self.board
         if len(board[board == 0]) > 0:
             return False
+        for row in self.rows:
+            if len(np.setdiff1d(self.value_range, row)) != 0:
+                return False
+        for col in self.cols:
+            if len(np.setdiff1d(self.value_range, col)) != 0:
+                return False
+        for sq in self.squares:
+            if len(np.setdiff1d(self.value_range, sq.ravel())) != 0:
+                return False
         return True

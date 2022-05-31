@@ -9,6 +9,7 @@ from sudoku.solver import check_and_fill_group_with_one_missing, SudokuSolver
 from sudoku.validators import is_square
 from tests.conftest import solution_2x2_a, solution_3x3_a
 
+
 def create_groups_with_one_empty_cell(group: np.ndarray) -> list[np.ndarray]:
     ret = [copy(group) for i in range(len(group))]
     for i, g in enumerate(ret):
@@ -44,15 +45,13 @@ class TestFunc_check_and_fill_simple_case:
         assert np.array_equal(make_line(solved_group), output)
 
 
-
-
 simplest_boards_puzzle_solution = (
     (  # test basic row fill solution
         solution_2x2_a,
         (
             [0, 2, 3, 4],
-            [2, 0, 4, 1],
-            [3, 4, 0, 2],
+            [3, 0, 1, 2],
+            [2, 3, 0, 1],
             [4, 1, 2, 0]
         )
     ),
@@ -60,8 +59,8 @@ simplest_boards_puzzle_solution = (
         solution_2x2_a,
         (
             [0, 0, 0, 0],
-            [2, 3, 4, 1],
             [3, 4, 1, 2],
+            [2, 3, 4, 1],
             [4, 1, 2, 3]
         )
     ),
@@ -69,13 +68,13 @@ simplest_boards_puzzle_solution = (
         solution_3x3_a,
         (
             [0, 2, 3, 4, 5, 6, 7, 8, 9],
-            [2, 0, 4, 5, 6, 7, 8, 9, 1],
-            [3, 4, 0, 6, 7, 8, 9, 1, 2],
-            [4, 5, 6, 0, 8, 9, 1, 2, 3],
-            [5, 6, 7, 8, 0, 1, 2, 3, 4],
-            [6, 7, 8, 9, 1, 0, 3, 4, 5],
-            [7, 8, 9, 1, 2, 3, 0, 5, 6],
-            [8, 9, 1, 2, 3, 4, 5, 0, 7],
+            [4, 0, 6, 7, 8, 9, 1, 2, 3],
+            [7, 8, 0, 1, 2, 3, 4, 5, 6],
+            [2, 3, 4, 0, 6, 7, 8, 9, 1],
+            [8, 9, 1, 2, 0, 4, 5, 6, 7],
+            [5, 6, 7, 8, 9, 0, 2, 3, 4],
+            [3, 4, 5, 6, 7, 8, 0, 1, 2],
+            [6, 7, 8, 9, 1, 2, 3, 0, 5],
             [9, 1, 2, 3, 4, 5, 6, 7, 0],
         ),
     ),
@@ -83,7 +82,7 @@ simplest_boards_puzzle_solution = (
 
 
 @pytest.mark.parametrize('solution, puzzle', simplest_boards_puzzle_solution)
-def solve_groups_with_one_missing(puzzle, solution):
+def test_solve_groups_with_one_missing(puzzle, solution):
     solution = SudokuPuzzle(solution)
     solver = SudokuSolver(puzzle)
     assert solver.is_solved is False
@@ -91,7 +90,7 @@ def solve_groups_with_one_missing(puzzle, solution):
     solver.solve_groups_with_one_missing()
 
     assert solver.is_solved is True
-    assert solver.puzzle.board == solution.board
+    assert solver.puzzle == solution
 
 
 @pytest.mark.parametrize('output, puzzle', [
@@ -99,8 +98,8 @@ def solve_groups_with_one_missing(puzzle, solution):
             solution_2x2_a,
             (
                     [1, 0, 0, 4],
-                    [2, 3, 4, 1],
                     [3, 0, 1, 2],
+                    [2, 3, 4, 1],
                     [4, 1, 2, 3]
             )
     ),

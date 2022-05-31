@@ -2,12 +2,12 @@ import pytest
 
 from sudoku.puzzle import SudokuPuzzle, Row, Col,Square
 from sudoku.validators.array_validators import is_n_dimensional, is_square
-from tests.conftest import solution_2x2_b, solution_3x3_b
+from tests.conftest import solution_2x2_a, solution_3x3_a
 
 
 @pytest.mark.parametrize('puzzle_in', [
-    SudokuPuzzle(solution_2x2_b),
-    SudokuPuzzle(solution_3x3_b)
+    SudokuPuzzle(solution_2x2_a),
+    SudokuPuzzle(solution_3x3_a)
 ])
 class TestPuzzleGroups:
     def test_convert_board_to_cols(self, puzzle_in: SudokuPuzzle):

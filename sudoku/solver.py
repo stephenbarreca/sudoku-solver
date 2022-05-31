@@ -56,9 +56,10 @@ def convert_to_puzzle(puzzle: SudokuPuzzle | Board) -> SudokuPuzzle:
     else:
         return SudokuPuzzle(puzzle)
 
+
 @define
 class SudokuSolver:
-    puzzle: SudokuPuzzle = field(converter=SudokuPuzzle, repr=lambda p: f'\n{repr(p.board)}\nsolved={p.is_solved}')
+    puzzle: SudokuPuzzle = field(converter=convert_to_puzzle, repr=lambda p: f'\n{repr(p.board)}\nsolved={p.is_solved}')
     timeout: int = field(default=10, eq=False, repr=False)
 
     @property
