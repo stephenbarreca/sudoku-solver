@@ -11,8 +11,7 @@ from sudoku.groups import Group
 from sudoku.validators import is_square_array, is_valid_group_shape
 from sudoku.validators.group_validators import is_col, is_row
 
-logging.basicConfig(level=logging.INFO)
-
+logger = logging.getLogger(__name__)
 
 def solve_simple_board(board: SudokuPuzzle):
     board = deepcopy(board)
@@ -89,14 +88,14 @@ class SudokuSolver:
     def solve_groups_with_one_missing(self):
         original_puzzle = self.puzzle
         potentially_solved_puzzle = solve_simple_board(original_puzzle)
-        logging.debug(f'{original_puzzle=}')
-        logging.debug(f'{potentially_solved_puzzle=}')
+        logger.debug(f'{original_puzzle=}')
+        logger.debug(f'{potentially_solved_puzzle=}')
 
         while original_puzzle != potentially_solved_puzzle:
             original_puzzle = potentially_solved_puzzle
             potentially_solved_puzzle = solve_simple_board(original_puzzle)
-            logging.debug(f'{original_puzzle=}')
-            logging.debug(f'{potentially_solved_puzzle=}')
+            logger.debug(f'{original_puzzle=}')
+            logger.debug(f'{potentially_solved_puzzle=}')
 
         self.puzzle = potentially_solved_puzzle
 
@@ -122,6 +121,6 @@ class SudokuSolver:
             self.solve_cells_with_one_possibility()
 
             num_empty_cells_current = self.num_empty_cells
-            logging.info(f'board: {self.puzzle.board}')
-            logging.info(f'empty cells: {self.num_empty_cells}')
+            logger.info(f'board: {self.puzzle.board}')
+            logger.info(f'empty cells: {self.num_empty_cells}')
         return self
