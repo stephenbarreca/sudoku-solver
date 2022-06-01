@@ -1,81 +1,61 @@
-import pytest
+from copy import deepcopy
+
 import numpy as np
+import pytest
 
-
-solution_2x2_a = (
-    [1, 2, 3, 4],
-    [3, 4, 1, 2],
-    [2, 3, 4, 1],
-    [4, 1, 2, 3]
-)
-solution_3x3_a = (
-    [1, 2, 3, 4, 5, 6, 7, 8, 9],
-    [4, 5, 6, 7, 8, 9, 1, 2, 3],
-    [7, 8, 9, 1, 2, 3, 4, 5, 6],
-    [2, 3, 4, 5, 6, 7, 8, 9, 1],
-    [8, 9, 1, 2, 3, 4, 5, 6, 7],
-    [5, 6, 7, 8, 9, 1, 2, 3, 4],
-    [3, 4, 5, 6, 7, 8, 9, 1, 2],
-    [6, 7, 8, 9, 1, 2, 3, 4, 5],
-    [9, 1, 2, 3, 4, 5, 6, 7, 8],
+from tests.board_lists import (
+    puzzle_list_3x3_easy, puzzle_list_3x3_simple, solution_list_2x2_a, solution_list_3x3_a, solution_list_3x3_easy,
+    solution_list_3x3_simple,
 )
 
-solution_3x3_simple = (
-    [4,7,3, 1,6,5, 8,9,2],
-    [2,9,5, 4,7,8, 1,6,3],
-    [6,1,8, 9,2,3, 5,7,4],
 
-    [5,4,7, 6,8,2, 9,3,1],
-    [8,6,1, 7,3,9, 4,2,5],
-    [3,2,9, 5,4,1, 6,8,7],
+@pytest.fixture()
+def solution_2x2_a():
+    return deepcopy(solution_list_2x2_a)
 
-    [7,5,6, 3,9,4, 2,1,8],
-    [9,8,4, 2,1,7, 3,5,6],
-    [1,3,2, 8,5,6, 7,4,9]
+
+@pytest.fixture()
+def solution_3x3_a():
+    return deepcopy(solution_list_3x3_a)
+
+
+@pytest.fixture()
+def solution_3x3_simple():
+    return deepcopy(solution_list_3x3_simple)
+
+
+@pytest.fixture()
+def puzzle_3x3_simple():
+    return deepcopy(puzzle_list_3x3_simple)
+
+
+@pytest.fixture()
+def solution_3x3_easy():
+    return deepcopy(solution_list_3x3_easy)
+
+
+@pytest.fixture()
+def puzzle_3x3_easy():
+    return deepcopy(puzzle_list_3x3_easy)
+
+
+@pytest.fixture(params=[solution_list_2x2_a, solution_list_3x3_a], ids=['2x2', '3x3'])
+def value_list(request):
+    return request.param
+
+
+@pytest.fixture(
+    params=[
+        (puzzle_list_3x3_simple, solution_list_3x3_simple),
+        (puzzle_list_3x3_easy, solution_list_3x3_easy)
+    ],
+    ids=['simple', 'easy']
 )
-
-puzzle_3x3_simple = (
-    [0,0,3, 0,6,0, 8,0,0],
-    [0,0,0, 0,0,0, 1,0,0],
-    [0,1,0, 9,0,3, 0,7,0],
-
-    [0,0,7, 6,0,2, 9,0,0],
-    [8,6,1, 0,0,0, 0,0,5],
-    [0,0,9, 5,0,1, 6,0,0],
-
-    [0,5,0, 3,0,4, 0,1,0],
-    [0,0,0, 0,1,0, 0,0,0],
-    [1,0,2, 0,5,0, 7,0,0]
-)
-solution_3x3_easy = (
-    [3,7,4, 1,8,6, 9,5,2],
-    [6,2,9, 5,4,3, 8,7,1],
-    [5,8,1, 9,7,2, 3,4,6],
-
-    [8,1,3, 7,2,5, 4,6,9],
-    [7,6,5, 8,9,4, 1,2,3],
-    [9,4,2, 3,6,1, 5,8,7],
-
-    [2,3,3, 4,5,9, 7,1,8],
-    [4,9,7, 2,1,8, 6,3,5],
-    [1,5,8, 6,3,7, 2,9,4],
-)
-puzzle_3x3_easy = (
-    [0,0,0, 0,8,0, 0,0,0],
-    [0,0,0, 5,0,3, 0,0,0],
-    [5,8,1, 0,7,2, 0,0,0],
-
-    [0,0,0, 0,0,0, 4,6,0],
-    [0,6,0, 8,0,0, 1,0,3],
-    [9,4,0, 0,6,0, 0,8,0],
-
-    [0,3,0, 0,0,0, 7,0,0],
-    [0,9,7, 2,1,0, 6,0,0],
-    [0,0,0, 6,0,0, 2,0,0],
-)
+def puzzle_pair(request):
+    pair = deepcopy(request.param)
+    return {'puzzle': pair[0], 'solution': pair[1]}
 
 
 @pytest.fixture()
 def group_array_9x1():
     return np.array(range(1, 10))
-

@@ -7,9 +7,10 @@ import pytest
 from sudoku.puzzle import make_line, make_square, SudokuPuzzle
 from sudoku.solver import check_and_fill_group_with_one_missing, SudokuSolver
 from sudoku.validators import is_square_array
-from tests.conftest import (solution_2x2_a, solution_3x3_a,
-                            solution_3x3_simple, puzzle_3x3_simple,
-                            solution_3x3_easy, puzzle_3x3_easy)
+from tests.board_lists import (
+    puzzle_list_3x3_easy, puzzle_list_3x3_simple, solution_list_2x2_a, solution_list_3x3_a,
+    solution_list_3x3_easy, solution_list_3x3_simple
+)
 from sudoku.groups import Group
 
 
@@ -59,7 +60,7 @@ class TestFunc_check_and_fill_simple_case:
 
 simplest_boards_puzzle_solution = (
     (  # test basic row fill solution
-        solution_2x2_a,
+        solution_list_2x2_a,
         (
             [0, 2, 3, 4],
             [3, 0, 1, 2],
@@ -68,7 +69,7 @@ simplest_boards_puzzle_solution = (
         )
     ),
     (  # test basic col fill solution
-        solution_2x2_a,
+        solution_list_2x2_a,
         (
             [0, 0, 0, 0],
             [3, 4, 1, 2],
@@ -77,7 +78,7 @@ simplest_boards_puzzle_solution = (
         )
     ),
     (  # test larger solution
-        solution_3x3_a,
+        solution_list_3x3_a,
         (
             [0, 2, 3, 4, 5, 6, 7, 8, 9],
             [4, 0, 6, 7, 8, 9, 1, 2, 3],
@@ -107,7 +108,7 @@ def test_solve_groups_with_one_missing(puzzle, solution):
 
 @pytest.mark.parametrize('output, puzzle', [
     (
-            solution_2x2_a,
+            solution_list_2x2_a,
             (
                     [1, 0, 0, 4],
                     [3, 0, 1, 2],
@@ -127,24 +128,9 @@ def test_solve_cells_with_one_possibility(output, puzzle):
     assert solver.puzzle == output
 
 
-@pytest.mark.parametrize('puzzle, solution', [
-    (puzzle_3x3_simple, solution_3x3_simple)
-])
-def test_solve_simple(puzzle, solution):
-    solver = SudokuSolver(puzzle)
-    solution = SudokuPuzzle(solution)
-
-    solver.solve()
-
-    assert solver.is_solved
-    assert np.array_equal(solver.puzzle.board, solution.board)
-
-@pytest.mark.parametrize('puzzle, solution', [
-    (puzzle_3x3_easy, solution_3x3_easy)
-])
-def test_solve_easy(puzzle, solution):
-    solver = SudokuSolver(puzzle)
-    solution = SudokuPuzzle(solution)
+def test_solve(puzzle_pair):
+    solver = SudokuSolver(puzzle_pair['puzzle'])
+    solution = SudokuPuzzle(puzzle_pair['solution'])
 
     solver.solve()
 

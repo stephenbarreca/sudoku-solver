@@ -4,12 +4,12 @@ import pytest
 from sudoku.puzzle import SudokuPuzzle, Cell
 from sudoku.groups import ColArray, RowArray, SquareArray, Col, Row, Square
 from sudoku.validators.array_validators import is_nd_array, is_square_array
-from tests.conftest import solution_2x2_a, solution_3x3_a
+from tests.board_lists import solution_list_2x2_a, solution_list_3x3_a
 
 
 @pytest.mark.parametrize('puzzle_in', [
-    SudokuPuzzle(solution_2x2_a),
-    SudokuPuzzle(solution_3x3_a)
+    SudokuPuzzle(solution_list_2x2_a),
+    SudokuPuzzle(solution_list_3x3_a)
 ])
 class TestPuzzleGroups:
     def test_convert_board_to_cols(self, puzzle_in: SudokuPuzzle):
