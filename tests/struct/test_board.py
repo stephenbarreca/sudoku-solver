@@ -1,17 +1,25 @@
 import numpy as np
 import pytest
 
-from sudoku.sudoku_struct.board import _make_squares_from_ndarray, SudokuBoardStruct, make_squares
+from sudoku.sudoku_struct.board import _make_squares_from_ndarray, make_squares, SudokuBoardStruct
 from sudoku.sudoku_struct.cell import CellArray
 from sudoku.validators import is_square_array
-from ..board_lists import solution_list_2x2_a, solution_list_3x3_a
+from ..board_lists import (
+    puzzle_list_3x3_easy, puzzle_list_3x3_simple, solution_list_2x2_a, solution_list_3x3_a,
+    solution_list_3x3_simple,
+)
 
 
 @pytest.fixture()
 def board(value_list):
-    return SudokuBoardStruct.from_value_array(value_list)
+    return SudokuBoardStruct(value_list)
+
 
 class TestSudokuBoardStruct:
+    def test_init_with_value_array(self, board):
+        assert isinstance(board, SudokuBoardStruct)
+        assert isinstance(board.cell_array, CellArray)
+
     def test_from_values(self, board):
         assert isinstance(board, SudokuBoardStruct)
         assert isinstance(board.cell_array, CellArray)
@@ -59,5 +67,18 @@ class TestSudokuBoardStruct:
         assert cell['value'] == board.get_cell_value(0, 0)
         assert np.array_equal(cell['candidates'], board.get_cell_candidates(0, 0))
 
-    def test_is_solved(self):
-        assert False
+    @pytest.mark.parametrize(
+        argnames=['board', 'expected'],
+        argvalues=[(SudokuBoardStruct(solution_list_2x2_a), True),
+                   (SudokuBoardStruct(solution_list_3x3_a), True),
+                   (SudokuBoardStruct(solution_list_3x3_simple), True),
+                   (SudokuBoardStruct(puzzle_list_3x3_simple), False),
+                   (SudokuBoardStruct(puzzle_list_3x3_easy), False)],
+        ids=['Solved 2x2 A',
+             'Solved 3x3 A',
+             'Solved 3x3 Simple',
+             'Unsolved 3x3 Simple',
+             'Unsolved 3x3 Easy', ]
+    )
+    def test_is_solved(self, board, expected):
+        assert board.is_solved is expected

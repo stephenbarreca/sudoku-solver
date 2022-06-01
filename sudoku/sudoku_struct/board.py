@@ -67,7 +67,6 @@ def make_squares(board: BoardLike) -> SqrCellArray | SqrNDArray:
     else:
         return _make_squares_from_ndarray(board)
 
-
 @define
 class SudokuBoardStruct:
     cell_array: CellArray | NDArray[NDArray[cell_dtype]] = field(repr=True, converter=convert_to_struct_cell_array)
@@ -75,11 +74,13 @@ class SudokuBoardStruct:
     _side_len: int = field(init=False, eq=False, repr=False)
     _square_side_len: int = field(init=False, eq=False, repr=False)
     _square_shape: tuple[int, int] = field(init=False, eq=False, repr=False)
+    _value_range: NDArray[np.int] = field(init=False, eq=False, repr=False)
 
     def __attrs_post_init__(self):
         self._side_len = len(self.cell_array[0])
         self._square_side_len = isqrt(self.side_len)
         self._square_shape = (self.square_side_len, self.square_side_len)
+        self._value_range = np.array(range(1, self.side_len + 1))
 
     def __array__(self):
         return self.cell_array
@@ -101,6 +102,10 @@ class SudokuBoardStruct:
         return self._square_shape
 
     @property
+    def value_range(self):
+        return self._value_range
+
+    @property
     def value_array(self) -> BoardValues:
         return self.get_value_array()
 
@@ -114,18 +119,17 @@ class SudokuBoardStruct:
 
     @property
     def squares(self) -> SqrCellArray:
-        return make_squares(self.board)
+        return make_squares(self.cell_array)
 
     @property
     def is_solved(self):
-        value_array = self.value_array
-        if self.count_empty_cell() > 0:
+        value_array = self.get_value_array()
+        if value_array[value_array == 0].size > 0:
             return False
-        for group_types in [self.rows, self.cols, self.squares]:
-            for groups in group_types:
-                for g in groups:
-                    if np.setdiff1d(value_array, g.ravel()).size != 0:
-                        return False
+        for groups in [self.rows, self.cols, self.squares]:
+            for g in groups:
+                if np.setdiff1d(self.value_range, g['value'].ravel()).size != 0:
+                    return False
         return True
 
     def count_empty_cell(self) -> int:
