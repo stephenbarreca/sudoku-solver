@@ -13,35 +13,49 @@ class SudokuSolverStruct:
     board: SudokuBoardStruct = field(repr=lambda b: f'\n{repr(b.value_array)}\nsolved={b.is_solved}',
                                      converter=convert_to_board)
     timeout: int = field(default=10, eq=False, repr=False)
+    timer: float = field(default=0, eq=False, repr=False)
 
     @property
     def is_solved(self):
         return self.board.is_solved
 
-    def solve(self):
-        timer = time()
+    def run_step(self, func, empty_cell_count, *args, **kwargs):
         num_empty_cells_prev = 0
-        num_empty_cells_current = self.board.count_empty_cell()
-
+        num_empty_cells_current = empty_cell_count
         while ((num_empty_cells_prev != num_empty_cells_current)
-               and (time() - timer < self.timeout)
+               and (time() - self.timer < self.timeout)
                and (self.is_solved is False)):
             num_empty_cells_prev = num_empty_cells_current
 
-            self.board.determine_board_candidates_groupwise()
+            func(*args, **kwargs)
+            if self.is_solved is True:
+                break
+
+            num_empty_cells_current = self.board.count_empty_cell()
+        return self.board.count_empty_cell()
+
+    def solve(self):
+        self.timer = time()
+        num_empty_cells_prev = 0
+        num_empty_cells = self.board.count_empty_cell()
+        while ((num_empty_cells_prev != num_empty_cells)
+               and (time() - self.timer < self.timeout)
+               and (self.is_solved is False)):
+
+            num_empty_cells_prev = num_empty_cells
+            for i in range(self.board.side_len):
+                num_empty_cells = self.run_step(self.board.determine_board_candidates_groupwise, num_empty_cells)
+                if self.is_solved is True:
+                    break
+
+                num_empty_cells = self.run_step(self.board.determine_board_hidden_candidates_single, num_empty_cells)
+                if self.is_solved is True:
+                    break
             if self.is_solved is True:
                 break
 
             for cell in self.board.get_empty_cells():
                 self.board.determine_cell_candidates(cell)
-
             if self.is_solved is True:
                 break
-
-            self.board.determine_board_hidden_candidates_single()
-            if self.is_solved is True:
-                break
-            num_empty_cells_current = self.board.count_empty_cell()
-            logger.info(f'board: {self.board.cell_array}')
-            logger.info(f'empty cells: {num_empty_cells_current}')
         return self

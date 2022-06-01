@@ -118,8 +118,16 @@ class SudokuSolver:
             num_empty_cells_prev = num_empty_cells_current
 
             self.solve_groups_with_one_missing()
+            if self.is_solved is True:
+                break
+
             self.solve_hidden_values_single()
+            if self.is_solved is True:
+                break
+
             self.solve_cells_with_one_possibility()
+            if self.is_solved is True:
+                break
 
             num_empty_cells_current = self.num_empty_cells
             logger.info(f'board: {self.puzzle.board}')

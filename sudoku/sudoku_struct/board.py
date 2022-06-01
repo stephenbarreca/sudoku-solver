@@ -239,11 +239,10 @@ class SudokuBoardStruct:
         return np.setdiff1d(self.value_range, group_values)
 
     def determine_group_candidates(self, group: GroupArray):
-        candidates = self.get_missing_values_of_group(group)
-        if candidates.size != 0:
+        missing_values = self.get_missing_values_of_group(group)
+        if missing_values.size != 0:
             for cell in group.ravel():
-                self.refine_cell_candidates(cell, candidates)
-
+                self.refine_cell_candidates(cell, missing_values)
 
     def determine_group_hidden_candidates_single(self, group: GroupArray):
         missing_values = self.get_missing_values_of_group(group)
