@@ -1,7 +1,9 @@
 import numpy as np
 import pytest
 
-from sudoku.puzzle import SudokuPuzzle, Cell
+from sudoku.puzzle import SudokuPuzzle
+from sudoku.board import SudokuBoard
+from sudoku.cell import Cell
 from sudoku.groups import ColArray, RowArray, SquareArray, Col, Row, Square
 from sudoku.validators.array_validators import is_nd_array, is_square_array
 from tests.conftest import solution_2x2_a, solution_3x3_a
@@ -15,21 +17,18 @@ class TestPuzzleGroups:
     def test_convert_board_to_cols(self, puzzle_in: SudokuPuzzle):
         cols = puzzle_in.cols
         for j, col in enumerate(cols):
-            assert isinstance(col, Col)
-            assert is_nd_array(col.array, 1)
+            assert is_nd_array(col['value'], 1)
             np.array_equal(cols, col)
 
     def test_convert_board_to_rows(self, puzzle_in):
         rows = puzzle_in.rows
         for row in rows:
-            assert isinstance(row, Row)
-            assert is_nd_array(row.array, 1)
+            assert is_nd_array(row, 1)
 
     def test_convert_board_to_squares(self, puzzle_in):
         squares = puzzle_in.squares
         for sq in squares:
-            assert isinstance(sq, Square)
-            assert is_square_array(sq.array)
+            assert is_square_array(sq[['row', 'col']])
 
     def test_from_cols(self, puzzle_in):
         cols = puzzle_in.cols
@@ -56,8 +55,7 @@ class TestPuzzleGroups:
         squares = puzzle_in.squares
         square_correct = puzzle_in.squares[0]
         coords = (0, 0)
-        cell = puzzle_in.get_cell(*coords)
 
-        square_returned = puzzle_in.get_square_from_cell(cell)
+        square_returned = puzzle_in.get_square_from_cell(coords[0], coords[1])
 
-        assert square_returned == square_correct
+        assert np.array_equal(square_returned[['row','col']], square_correct[['row','col']])

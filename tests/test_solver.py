@@ -137,7 +137,8 @@ def test_solve_simple(puzzle, solution):
     solver.solve()
 
     assert solver.is_solved
-    assert np.array_equal(solver.puzzle.board, solution.board)
+    assert np.array_equal(solver.puzzle.board_array, solution.board_array)
+
 
 @pytest.mark.parametrize('puzzle, solution', [
     (puzzle_3x3_easy, solution_3x3_easy)
@@ -149,4 +150,4 @@ def test_solve_easy(puzzle, solution):
     solver.solve()
 
     assert solver.is_solved
-    assert np.array_equal(solver.puzzle.board, solution.board)
+    assert np.array_equal(solver.puzzle.board_array, solution.board_array)

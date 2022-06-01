@@ -2,6 +2,7 @@ import numpy as np
 from attrs import cmp_using, define, field
 from numpy.typing import NDArray
 
+from .cell import Cell
 from .validators import is_1d_array
 
 
@@ -77,13 +78,11 @@ class Group:
     def __array__(self):
         return self.array
 
-    def get_cells(self):
-        pass
+
 
 @define(slots=False)
 class Row(Group):
     array: RowArray = field(eq=cmp_using(eq=np.array_equal), converter=convert_to_row_array)
-
 
 @define(slots=False)
 class Col(Group):

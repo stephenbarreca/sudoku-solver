@@ -6,7 +6,8 @@ import numpy as np
 from attrs import define, field
 from numpy.typing import NDArray
 
-from sudoku.puzzle import Board, Cell, SudokuPuzzle
+from sudoku.puzzle import Board, SudokuPuzzle
+from sudoku.cell import Cell
 from sudoku.groups import Group
 from sudoku.validators import is_square_array, is_valid_group_shape
 from sudoku.validators.group_validators import is_col, is_row
@@ -27,19 +28,6 @@ def solve_simple_board(board: SudokuPuzzle):
     return board
 
 
-def fill_groups_with_one_missing(group: Group) -> Group:
-    """check if only 1 number is missing in the group. if it is fill it. """
-    if not is_valid_group_shape(group.array):
-        raise ValueError('group is invalid shape')
-
-    if is_col(group.array):
-        return check_and_fill_group_with_one_missing(group)
-    elif is_row(group.array):
-        return check_and_fill_group_with_one_missing(group)
-    elif is_square_array(group.array):
-        return check_and_fill_group_with_one_missing(group)
-
-
 def check_and_fill_group_with_one_missing(group: Group) -> Group:
     if len(group.array[group.array == 0]) == 1:
         for i in range(1, group.array.size + 1):
@@ -58,7 +46,7 @@ def convert_to_puzzle(puzzle: SudokuPuzzle | Board) -> SudokuPuzzle:
 
 @define
 class SudokuSolver:
-    puzzle: SudokuPuzzle = field(converter=convert_to_puzzle, repr=lambda p: f'\n{repr(p.board)}\nsolved={p.is_solved}')
+    puzzle: SudokuPuzzle = field(converter=convert_to_puzzle, repr=lambda p: f'\n{repr(p.board_array)}\nsolved={p.is_solved}')
     timeout: int = field(default=10, eq=False, repr=False)
 
     @property
@@ -72,39 +60,35 @@ class SudokuSolver:
     def solve_hidden_values_single(self):
         for row in self.puzzle.rows:
             cells_with_hidden_values = self.puzzle.get_single_hidden_values_of_group(row)
-            for cell in cells_with_hidden_values:
-                self.puzzle.put_cell(cell)
 
         for col in self.puzzle.cols:
             cells_with_hidden_values = self.puzzle.get_single_hidden_values_of_group(col)
-            for cell in cells_with_hidden_values:
-                self.puzzle.put_cell(cell)
 
         for sq in self.puzzle.squares:
             cells_with_hidden_values = self.puzzle.get_single_hidden_values_of_group(sq)
-            for cell in cells_with_hidden_values:
-                self.puzzle.put_cell(cell)
 
     def solve_groups_with_one_missing(self):
-        original_puzzle = self.puzzle
-        potentially_solved_puzzle = solve_simple_board(original_puzzle)
-        logger.debug(f'{original_puzzle=}')
-        logger.debug(f'{potentially_solved_puzzle=}')
+        original_puzzle = deepcopy(self.puzzle.board.struct_cell_array)
+        potentially_solved_puzzle = np.array([1,2,3])
+        group_types = [self.puzzle.rows, self.puzzle.cols, self.puzzle.squares]
 
-        while original_puzzle != potentially_solved_puzzle:
+        while not self.is_solved and not np.array_equal(original_puzzle, potentially_solved_puzzle):
             original_puzzle = potentially_solved_puzzle
-            potentially_solved_puzzle = solve_simple_board(original_puzzle)
+            for groups in group_types:
+                for group in groups:
+                    missing_row_values = self.puzzle.get_missing_values_of_group(group['value'])
+                    if len(missing_row_values) == 1:
+                        empty_cell = group[group['value'] == 0][0]
+                        self.puzzle.board.set_cell_value(empty_cell['row'], empty_cell['col'], missing_row_values[0])
+
+            potentially_solved_puzzle = deepcopy(self.puzzle.board.struct_cell_array['value'])
             logger.debug(f'{original_puzzle=}')
             logger.debug(f'{potentially_solved_puzzle=}')
-
-        self.puzzle = potentially_solved_puzzle
+        return
 
     def solve_cells_with_one_possibility(self):
-        for coord in self.puzzle.get_empty_cell_coords():
-            cell = Cell(coord[0], coord[1], 0)
-            possible_cell_values = self.puzzle.get_possible_cell_values(cell)
-            if possible_cell_values.size == 1:
-                self.puzzle.put_cell(cell, possible_cell_values[0])
+        for row, col in self.puzzle.get_empty_cells()[['row', 'col']]:
+            self.puzzle.determine_and_update_cell_candidates(row, col)
 
     def solve(self):
         timer = time()
@@ -121,6 +105,6 @@ class SudokuSolver:
             self.solve_cells_with_one_possibility()
 
             num_empty_cells_current = self.num_empty_cells
-            logger.info(f'board: {self.puzzle.board}')
+            logger.info(f'board: {self.puzzle.board_array}')
             logger.info(f'empty cells: {self.num_empty_cells}')
         return self
