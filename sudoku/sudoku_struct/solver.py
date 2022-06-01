@@ -19,7 +19,7 @@ class SudokuSolverStruct:
     def is_solved(self):
         return self.board.is_solved
 
-    def run_step(self, func, empty_cell_count, *args, **kwargs):
+    def loop_step(self, func, empty_cell_count, *args, **kwargs):
         num_empty_cells_prev = 0
         num_empty_cells_current = empty_cell_count
         while ((num_empty_cells_prev != num_empty_cells_current)
@@ -29,7 +29,7 @@ class SudokuSolverStruct:
 
             func(*args, **kwargs)
             if self.is_solved is True:
-                break
+                return self.board.count_empty_cell()
 
             num_empty_cells_current = self.board.count_empty_cell()
         return self.board.count_empty_cell()
@@ -41,21 +41,14 @@ class SudokuSolverStruct:
         while ((num_empty_cells_prev != num_empty_cells)
                and (time() - self.timer < self.timeout)
                and (self.is_solved is False)):
-
             num_empty_cells_prev = num_empty_cells
-            for i in range(self.board.side_len):
-                num_empty_cells = self.run_step(self.board.determine_board_candidates_groupwise, num_empty_cells)
-                if self.is_solved is True:
-                    break
 
-                num_empty_cells = self.run_step(self.board.determine_board_hidden_candidates_single, num_empty_cells)
-                if self.is_solved is True:
-                    break
+            num_empty_cells = self.loop_step(self.board.determine_board_candidates_groupwise, num_empty_cells)
             if self.is_solved is True:
-                break
+                return self
 
-            for cell in self.board.get_empty_cells():
-                self.board.determine_cell_candidates(cell)
+            num_empty_cells = self.loop_step(self.board.determine_board_hidden_candidates_single, num_empty_cells)
             if self.is_solved is True:
-                break
+                return self
+
         return self

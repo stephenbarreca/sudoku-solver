@@ -10,7 +10,7 @@ S_TO_MS = 1000
 
 
 def main():
-    n = 10
+    n = 20
 
     performance_simple_puzzle = (timeit(lambda: SudokuSolver(puzzle_list_3x3_simple_b1).solve(), number=n) / n) * S_TO_MS
     print(f'Dataclass Performance{performance_simple_puzzle:.0f}ms')
