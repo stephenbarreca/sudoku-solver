@@ -8,8 +8,8 @@ from sudoku.puzzle import make_line, make_square, SudokuPuzzle
 from sudoku.solver import check_and_fill_group_with_one_missing, SudokuSolver
 from sudoku.validators import is_square_array
 from tests.board_lists import (
-    puzzle_list_3x3_easy, puzzle_list_3x3_simple, solution_list_2x2_a, solution_list_3x3_a,
-    solution_list_3x3_easy, solution_list_3x3_simple
+    puzzle_list_3x3_easy, puzzle_list_3x3_simple_b1, solution_list_2x2_a, solution_list_3x3_a,
+    solution_list_3x3_easy, solution_list_3x3_simple_b
 )
 from sudoku.groups import Group
 

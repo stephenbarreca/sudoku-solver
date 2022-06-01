@@ -13,6 +13,7 @@ from sudoku.validators.group_validators import is_col, is_row
 
 logger = logging.getLogger(__name__)
 
+
 def solve_simple_board(board: SudokuPuzzle):
     board = deepcopy(board)
     rows = [check_and_fill_group_with_one_missing(row) for row in board.rows]
