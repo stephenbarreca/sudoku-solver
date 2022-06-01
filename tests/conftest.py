@@ -23,12 +23,12 @@ def solution_3x3_a():
 
 @pytest.fixture()
 def solution_3x3_simple():
-    return deepcopy(solution_list_3x3_simple)
+    return deepcopy(solution_list_3x3_simple_b)
 
 
 @pytest.fixture()
 def puzzle_3x3_simple():
-    return deepcopy(puzzle_list_3x3_simple)
+    return deepcopy(puzzle_list_3x3_simple_b1)
 
 
 @pytest.fixture()
@@ -54,7 +54,7 @@ def board_value_list(request):
         (puzzle_list_3x3_simple_b1, solution_list_3x3_simple_b),
         (puzzle_list_3x3_easy, solution_list_3x3_easy)
     ],
-    ids=['2x2 a', '2x2b', 'simple 1', 'simple 2', 'easy']
+    ids=['2x2 a1', '2x2 a2', 'simple a1', 'simple b1', 'easy']
 )
 def puzzle_pair(request):
     pair = deepcopy(request.param)

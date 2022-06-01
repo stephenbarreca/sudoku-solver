@@ -205,7 +205,7 @@ class SudokuBoardStruct:
             if len(old_candidates) == 0:
                 self.set_cell_candidates(row, col, candidates)
             else:
-                self.set_cell_candidates(row, col, np.setdiff1d(old_candidates, candidates))
+                self.set_cell_candidates(row, col, np.intersect1d(old_candidates, candidates))
 
     def refine_cell_candidates(self, cell: np.void, candidates: list[int] | NDArray[int]):
         return self.refine_cell_candidates_by_coords(*self.get_cell_coords(cell), candidates=candidates)
@@ -240,14 +240,30 @@ class SudokuBoardStruct:
 
     def determine_group_candidates(self, group: GroupArray):
         candidates = self.get_missing_values_of_group(group)
-        for cell in group.ravel():
-            self.refine_cell_candidates(cell, candidates)
+        if candidates.size != 0:
+            for cell in group.ravel():
+                self.refine_cell_candidates(cell, candidates)
+
+
+    def determine_group_hidden_candidates_single(self, group: GroupArray):
+        missing_values = self.get_missing_values_of_group(group)
+
+        for v in missing_values:
+            cells_with_v = [cell for cell in group if v in cell['candidates']]
+            if len(cells_with_v) == 1:
+                self.set_cell_value(cells_with_v[0]['row'], cells_with_v[0]['col'], v)
 
     def determine_board_candidates_groupwise(self):
         group_types = [self.rows, self.cols, self.squares]
         for groups in group_types:
             for group in groups:
                 self.determine_group_candidates(group)
+
+    def determine_board_hidden_candidates_single(self):
+        group_types = [self.rows, self.cols, self.squares]
+        for groups in group_types:
+            for group in groups:
+                self.determine_group_hidden_candidates_single(group)
 
     def determine_cell_candidates_by_group_intersection(self, cell: np.void, refine_group_cells: bool = True):
         if cell['value'] != 0:
@@ -265,7 +281,6 @@ class SudokuBoardStruct:
             candidates = self.get_missing_values_of_group(row_col_square)
             self.refine_cell_candidates(cell, candidates)
         return
-
     def determine_cell_candidates(self, cell: np.void):
         if cell['candidates'].size == 1:
             return

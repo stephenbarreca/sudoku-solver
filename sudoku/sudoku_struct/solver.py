@@ -29,9 +29,18 @@ class SudokuSolverStruct:
             num_empty_cells_prev = num_empty_cells_current
 
             self.board.determine_board_candidates_groupwise()
+            if self.is_solved is True:
+                break
+
             for cell in self.board.get_empty_cells():
                 self.board.determine_cell_candidates(cell)
 
+            if self.is_solved is True:
+                break
+
+            self.board.determine_board_hidden_candidates_single()
+            if self.is_solved is True:
+                break
             num_empty_cells_current = self.board.count_empty_cell()
             logger.info(f'board: {self.board.cell_array}')
             logger.info(f'empty cells: {num_empty_cells_current}')
